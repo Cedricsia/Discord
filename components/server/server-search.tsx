@@ -11,7 +11,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useParams, useRouter } from "next/navigation";
-import { set } from "zod";
 
 interface ServerSearchProps {
   data: {

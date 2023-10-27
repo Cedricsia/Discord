@@ -1,9 +1,10 @@
 "use client";
+
 import qs from "query-string";
+import axios from "axios";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { ChannelType } from "@prisma/client";
 
 import {
@@ -28,37 +29,50 @@ import { useModal } from "@/hooks/use-modal-store";
 import {
   Select,
   SelectContent,
-  SelectTrigger,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   name: z
     .string()
-    .min(1, { message: " Channel name is required" })
+    .min(1, {
+      message: "Channel name is required.",
+    })
     .refine((name) => name !== "general", {
-      message: "Channel name cannot be general",
+      message: "Channel name cannot be 'general'",
     }),
   type: z.nativeEnum(ChannelType),
 });
 
 export const CreateChannelModal = () => {
-  const { isOpen, onClose, type } = useModal();
+  const { isOpen, onClose, type, data } = useModal();
   const router = useRouter();
   const params = useParams();
 
   const isModalOpen = isOpen && type === "createChannel";
+  const { channelType } = data;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      type: ChannelType.TEXT,
+      type: channelType || ChannelType.TEXT,
     },
   });
 
+  useEffect(() => {
+    if (channelType) {
+      form.setValue("type", channelType);
+    } else {
+      form.setValue("type", ChannelType.TEXT);
+    }
+  }, [channelType, form]);
+
   const isLoading = form.formState.isSubmitting;
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const url = qs.stringifyUrl({
@@ -68,6 +82,7 @@ export const CreateChannelModal = () => {
         },
       });
       await axios.post(url, values);
+
       form.reset();
       router.refresh();
       onClose();
@@ -75,6 +90,7 @@ export const CreateChannelModal = () => {
       console.log(error);
     }
   };
+
   const handleClose = () => {
     form.reset();
     onClose();
@@ -96,13 +112,13 @@ export const CreateChannelModal = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="uppercase text-xl font-bold text-zinc-500 dark:text-secondary/70">
+                    <FormLabel className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">
                       Channel name
                     </FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
-                        className="bg-zinc-300 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
+                        className="bg-zinc-300/50 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
                         placeholder="Enter channel name"
                         {...field}
                       />
@@ -123,7 +139,7 @@ export const CreateChannelModal = () => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="bg-zinc-300/50 border-0 focus:ring-0 text-black ring-offset-0 capitalize outline-none ">
+                        <SelectTrigger className="bg-zinc-300/50 border-0 focus:ring-0 text-black ring-offset-0 focus:ring-offset-0 capitalize outline-none">
                           <SelectValue placeholder="Select a channel type" />
                         </SelectTrigger>
                       </FormControl>
@@ -139,7 +155,7 @@ export const CreateChannelModal = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage></FormMessage>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
