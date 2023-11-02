@@ -11,7 +11,8 @@ export type ModalType =
   | "deleteServer"
   | "deleteChannel"
   | "editChannel"
-  | "messageFile";
+  | "messageFile"
+  | "deleteMessage";
 
 interface ModalData {
   server?: Server;
@@ -24,7 +25,7 @@ interface ModalData {
 interface ModalStore {
   type: ModalType | null;
   data: ModalData;
-  isOpen: Boolean;
+  isOpen: boolean;
   onOpen: (type: ModalType, data?: ModalData) => void;
   onClose: () => void;
 }
